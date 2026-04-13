@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHIMERA CORP — Operative Schedule</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #FEFEFE;
+  --bg-field: #F6F5F3;
+  --bg-hover: #F0EEEB;
+  --border: #E2E0DC;
+  --text: #1A1A1A;
+  --text-muted: #8A8680;
+  --text-label: #5C5955;
+  --accent: #1A1A1A;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+  --health: #2A9D6E;
+  --health-bg: #F0FAF5;
+  --health-border: #C8E8D8;
+  --work: #6B5CE7;
+  --work-bg: #F3F1FE;
+  --work-border: #D0CBF5;
+  --family: #3B82C4;
+  --family-bg: #EDF4FB;
+  --family-border: #B8D4F0;
+  --chore: #C48A2A;
+  --chore-bg: #FDF6EC;
+  --chore-border: #E8D4A8;
+}
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  position: relative;
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.015) 2px, rgba(0,0,0,0.015) 4px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* Top bar */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.corp-logo {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+}
+
+.top-divider {
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+
+.top-section {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.operative-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+}
+
+.day-indicator {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+/* Main layout */
+.main-layout {
+  display: flex;
+  min-height: calc(100vh - 45px);
+}
+
+/* Schedule panel */
+.schedule-panel {
+  flex: 1;
+  padding: 28px 32px;
+  overflow-y: auto;
+  border-right: 1px solid var(--border);
+}
+
+.schedule-header {
+  margin-bottom: 24px;
+}
+
+.schedule-ref {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.schedule-title {
+  font-family: var(--sans);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.schedule-subtitle {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* Legend */
+.legend {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  background: var(--bg-field);
+  border-radius: 2px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Schedule blocks */
+.block {
+  display: flex;
+  align-items: stretch;
+  margin-bottom: 4px;
+  border-radius: 2px;
+  overflow: hidden;
+  min-height: 46px;
+  border: 1px solid transparent;
+  transition: border-color 0.1s;
+}
+
+.block:hover { border-color: var(--border); }
+
+.time-col {
+  width: 64px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-label);
+  background: var(--bg-field);
+  border-right: 1px solid var(--border);
+}
+
+.detail-col {
+  flex: 1;
+  padding: 8px 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 3px solid transparent;
+}
+
+.detail-col .label {
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text);
+}
+
+.detail-col .sub {
+  font-family: var(--sans);
+  font-size: 11px;
+  margin: 2px 0 0;
+  color: var(--text-muted);
+}
+
+.detail-col .dur {
+  font-family: var(--mono);
+  font-size: 9px;
+  margin-top: 2px;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Category colours */
+.cat-health .detail-col { background: var(--health-bg); border-left-color: var(--health); }
+.cat-health .label { color: #1A6B4A; }
+
+.cat-work .detail-col { background: var(--work-bg); border-left-color: var(--work); }
+.cat-work .label { color: #4A3DA0; }
+
+.cat-family .detail-col { background: var(--family-bg); border-left-color: var(--family); }
+.cat-family .label { color: #1E5A8A; }
+
+.cat-chore .detail-col { background: var(--chore-bg); border-left-color: var(--chore); }
+.cat-chore .label { color: #7A5518; }
+
+.cat-sleep { opacity: 0.4; }
+.cat-sleep .detail-col { background: var(--bg-field); border-left-color: var(--border); }
+
+/* Totals */
+.totals {
+  margin-top: 20px;
+  padding: 14px;
+  background: var(--bg-field);
+  border-radius: 2px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  border: 1px solid var(--border);
+}
+
+.t-item { text-align: center; }
+
+.t-val {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.t-lab {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Notes panel */
+.notes-panel {
+  width: 340px;
+  flex-shrink: 0;
+  padding: 28px 24px;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+.notes-header {
+  margin-bottom: 20px;
+}
+
+.notes-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-label);
+  margin-bottom: 4px;
+}
+
+.notes-subtitle {
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* Note blocks */
+.note-block {
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.note-day-header {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  background: var(--bg-field);
+  color: var(--text-label);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.note-day-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+.note-day-dot.mon { background: #6B5CE7; }
+.note-day-dot.tue { background: #2A9D6E; }
+.note-day-dot.wed { background: #C48A2A; }
+.note-day-dot.thu { background: #3B82C4; }
+.note-day-dot.fri { background: #C4342D; }
+.note-day-dot.daily { background: var(--text); }
+
+.note-content {
+  padding: 10px 12px;
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text);
+  min-height: 60px;
+  outline: none;
+  background: var(--bg);
+}
+
+.note-content:focus {
+  background: #FFFDE8;
+}
+
+.note-content:hover:not(:focus) {
+  background: var(--bg-field);
+}
+
+/* Task items within notes */
+.task {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.task-time {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-label);
+  min-width: 42px;
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.task-desc {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.task-desc .highlight {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--bg-field);
+  padding: 1px 5px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+}
+
+/* Add note button */
+.add-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 8px;
+}
+
+.add-note:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+  background: var(--bg-field);
+}
+
+/* Divider */
+.section-divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 16px 0;
+}
+
+/* Footer */
+.schedule-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+.schedule-footer p {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  line-height: 2;
+}
+</style>
+</head>
+<body>
+
+<!-- Top bar -->
+<div class="top-bar">
+  <div class="top-left">
+    <div class="corp-logo">Chimera Corp</div>
+    <div class="top-divider"></div>
+    <div class="top-section">Operative daily schedule</div>
+  </div>
+  <div class="top-right">
+    <span class="day-indicator" id="dayDisplay"></span>
+    <span class="operative-badge">The Salvare &middot; Mon&ndash;Fri</span>
+  </div>
+</div>
+
+<div class="main-layout">
+
+  <!-- Schedule -->
+  <div class="schedule-panel">
+    <div class="schedule-header">
+      <div class="schedule-ref">OPS-SCHED-001 &middot; Effective immediately</div>
+      <div class="schedule-title">Weekday operative schedule</div>
+      <div class="schedule-subtitle">Standard operating hours: 06:30&ndash;23:00. Deviation from this schedule must be logged via CC-HR-0015. Weekends are unstructured — the operative is trusted to maintain productivity. This trust has not yet been earned.</div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--health)"></span>Health</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--work)"></span>Work</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--family)"></span>Family &amp; leisure</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--chore)"></span>Chores</div>
+    </div>
+
+    <div class="block cat-work"><div class="time-col">06:30</div><div class="detail-col"><p class="label">Prepare day ahead</p><p class="sub">Plan tasks, review priorities, set intentions</p><p class="dur">30 mins</p></div></div>
+
+    <div class="block cat-health"><div class="time-col">07:00</div><div class="detail-col"><p class="label">Brush, cleanse, skincare</p><p class="sub">Morning hygiene and skincare routine</p><p class="dur">30 mins</p></div></div>
+
+    <div class="block cat-health"><div class="time-col">07:30</div><div class="detail-col"><p class="label">Breakfast + feed dog</p><p class="sub">Prep and eat breakfast, feed Nori</p><p class="dur">30 mins</p></div></div>
+
+    <div class="block cat-health"><div class="time-col">08:00</div><div class="detail-col"><p class="label">School run + dog walk</p><p class="sub">Take Lily to school, walk Nori</p><p class="dur">30 mins</p></div></div>
+
+    <div class="block cat-health"><div class="time-col">08:30</div><div class="detail-col"><p class="label">Exercise + shower</p><p class="sub">Light workout or walk, then shower</p><p class="dur">45 mins</p></div></div>
+
+    <div class="block cat-work"><div class="time-col">09:15</div><div class="detail-col"><p class="label">Writing</p><p class="sub">Primary creative session — fresh pages, drafting</p><p class="dur">2 hrs 15 mins</p></div></div>
+
+    <div class="block cat-health"><div class="time-col">11:30</div><div class="detail-col"><p class="label">Lunch</p><p class="sub">Prep and eat lunch</p><p class="dur">30 mins</p></div></div>
+
+    <div class="block cat-work"><div class="time-col">12:00</div><div class="detail-col"><p class="label">Social media production</p><p class="sub">Content creation for Chimera Corp / The Salvare</p><p class="dur">2 hrs</p></div></div>
+
+    <div class="block cat-work"><div class="time-col">14:00</div><div class="detail-col"><p class="label">Writing / editing</p><p class="sub">Revision, editing, structural work</p><p class="dur">1 hr 30 mins</p></div></div>
+
+    <div class="block cat-work"><div class="time-col">15:30</div><div class="detail-col"><p class="label">Admin, comms + social posting</p><p class="sub">Emails, messages, schedule and post content</p><p class="dur">1 hr 30 mins</p></div></div>
+
+    <div class="block cat-chore"><div class="time-col">17:00</div><div class="detail-col"><p class="label">Household chores</p><p class="sub">Laundry, cleaning, errands, tidying</p><p class="dur">1 hr</p></div></div>
+
+    <div class="block cat-health"><div class="time-col">18:00</div><div class="detail-col"><p class="label">Dinner</p><p class="sub">Prep and eat dinner</p><p class="dur">30 mins</p></div></div>
+
+    <div class="block cat-family"><div class="time-col">18:30</div><div class="detail-col"><p class="label">Family time</p><p class="sub">Movie, games, or hanging out together</p><p class="dur">2 hrs</p></div></div>
+
+    <div class="block cat-health"><div class="time-col">20:30</div><div class="detail-col"><p class="label">Brush, cleanse, skincare</p><p class="sub">Evening hygiene and skincare routine</p><p class="dur">30 mins</p></div></div>
+
+    <div class="block cat-family"><div class="time-col">21:00</div><div class="detail-col"><p class="label">Free time</p><p class="sub">Family, reading, learning, decompression</p><p class="dur">2 hrs</p></div></div>
+
+    <div class="block cat-sleep"><div class="time-col">23:00</div><div class="detail-col"><p class="label">Sleep</p><p class="sub">Lights out</p></div></div>
+
+    <div class="totals">
+      <div class="t-item"><div class="t-val">3:45</div><div class="t-lab">Writing</div></div>
+      <div class="t-item"><div class="t-val">3:30</div><div class="t-lab">Social &amp; admin</div></div>
+      <div class="t-item"><div class="t-val">3:45</div><div class="t-lab">Health</div></div>
+      <div class="t-item"><div class="t-val">4:00</div><div class="t-lab">Family</div></div>
+      <div class="t-item"><div class="t-val">1:00</div><div class="t-lab">Chores</div></div>
+    </div>
+
+    <div class="schedule-footer">
+      <p>Chimera Corp &middot; Operative resource allocation</p>
+      <p>Schedule adherence is monitored. Loosely.</p>
+    </div>
+  </div>
+
+  <!-- Notes panel -->
+  <div class="notes-panel">
+    <div class="notes-header">
+      <div class="notes-title">Recurring tasks &amp; notes</div>
+      <div class="notes-subtitle">Click any note to edit. Changes are session-only.</div>
+    </div>
+
+    <!-- Wednesday -->
+    <div class="note-block">
+      <div class="note-day-header"><span class="note-day-dot wed"></span>Wednesday</div>
+      <div class="note-content" contenteditable="true">
+        <div class="task">
+          <span class="task-time">06:45</span>
+          <span class="task-desc">Update Chimera Report HTML with new dropdown content and access code <span class="highlight">chimeracorp.xyz/chimerareport</span></span>
+        </div>
+        <div class="task">
+          <span class="task-time">07:45</span>
+          <span class="task-desc">Confirm Brevo email has been distributed - check delivery stats and bounce rate</span>
+        </div>
+        <div class="task">
+          <span class="task-time">08:15</span>
+          <span class="task-desc">Post Chimera Report teaser to social channels</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monday -->
+    <div class="note-block">
+      <div class="note-day-header"><span class="note-day-dot mon"></span>Monday</div>
+      <div class="note-content" contenteditable="true">
+        <div class="task">
+          <span class="task-time">06:30</span>
+          <span class="task-desc">Weekly planning — outline writing targets, content calendar, admin priorities</span>
+        </div>
+        <div class="task">
+          <span class="task-time">12:00</span>
+          <span class="task-desc">Begin drafting Wednesday's Chimera Report content</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Friday -->
+    <div class="note-block">
+      <div class="note-day-header"><span class="note-day-dot fri"></span>Friday</div>
+      <div class="note-content" contenteditable="true">
+        <div class="task">
+          <span class="task-time">15:30</span>
+          <span class="task-desc">Weekly review - log word count progress, note blockers, plan next week</span>
+        </div>
+        <div class="task">
+          <span class="task-time">16:00</span>
+          <span class="task-desc">Schedule weekend social posts if needed</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- Daily -->
+    <div class="note-block">
+      <div class="note-day-header"><span class="note-day-dot daily"></span>Daily</div>
+      <div class="note-content" contenteditable="true">
+        <div class="task">
+          <span class="task-time">06:30</span>
+          <span class="task-desc">Check analytics — newsletter open rate, site traffic, social engagement</span>
+        </div>
+        <div class="task">
+          <span class="task-time">15:30</span>
+          <span class="task-desc">Respond to DMs, emails, moderation tasks</span>
+        </div>
+        <div class="task">
+          <span class="task-time">16:00</span>
+          <span class="task-desc">Schedule or post content across platforms</span>
+        </div>
+      </div>
+    </div>
+
+    <hr class="section-divider">
+
+    <!-- General notes -->
+    <div class="note-block">
+      <div class="note-day-header"><span class="note-day-dot"></span>General notes</div>
+      <div class="note-content" contenteditable="true" style="min-height:120px;">
+        <div class="task">
+          <span class="task-time">&mdash;</span>
+          <span class="task-desc">Chimera Report scheduled to: <span class="highlight">03/06/2026</span></span>
+        </div>
+        <div class="task">
+          <span class="task-time">&mdash;</span>
+          <span class="task-desc">Create Brevo sender: transmissions@chimeracorp.xyz</span>
+        </div>
+        <div class="task">
+          <span class="task-time">&mdash;</span>
+          <span class="task-desc">Novel target: 40,000–50,000 words in 12-15 weeks (Aug 26)</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="add-note" onclick="addNote()">+ Add to-do tasks (refresh)</button>
+
+  </div>
+</div>
+
+<script>
+// Display current day
+var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var d = new Date();
+document.getElementById('dayDisplay').textContent = days[d.getDay()] + ' ' + d.getDate() + '/' + (d.getMonth()+1) + '/' + d.getFullYear();
+
+// Add new note block
+function addNote() {
+  var container = document.querySelector('.add-note');
+  var block = document.createElement('div');
+  block.className = 'note-block';
+  block.innerHTML = '<div class="note-day-header"><span class="note-day-dot"></span><span contenteditable="true" style="outline:none;">To-Do</span></div><div class="note-content" contenteditable="true" style="min-height:80px;"><div class="task"><span class="task-time">&mdash;</span><span class="task-desc">Click to edit...</span></div></div>';
+  container.parentNode.insertBefore(block, container);
+}
+</script>
+
+</body>
+</html>
