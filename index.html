@@ -566,7 +566,7 @@ body::before {
     <!-- Monday -->
     <div class="note-block">
       <div class="note-day-header"><span class="note-day-dot mon"></span>Monday</div>
-      <div class="note-content" contenteditable="true" data-note-id="monday">
+      <div class="note-content" contenteditable="true" data-note-id="monday" data-version="1">
         <div class="task">
           <span class="task-time">06:30</span>
           <span class="task-desc">Weekly planning — outline writing targets, content calendar, admin priorities</span>
@@ -581,7 +581,7 @@ body::before {
     <!-- Wednesday -->
     <div class="note-block">
       <div class="note-day-header"><span class="note-day-dot wed"></span>Wednesday</div>
-      <div class="note-content" contenteditable="true" data-note-id="wednesday">
+      <div class="note-content" contenteditable="true" data-note-id="wednesday" data-version="1">
         <div class="task">
           <span class="task-time">06:45</span>
           <span class="task-desc">Update Chimera Report HTML with new dropdown content and access code <span class="highlight">chimeracorp.xyz/chimerareport</span></span>
@@ -600,7 +600,7 @@ body::before {
     <!-- Friday -->
     <div class="note-block">
       <div class="note-day-header"><span class="note-day-dot fri"></span>Friday</div>
-      <div class="note-content" contenteditable="true" data-note-id="friday">
+      <div class="note-content" contenteditable="true" data-note-id="friday" data-version="1">
         <div class="task">
           <span class="task-time">15:30</span>
           <span class="task-desc">Weekly review - log word count progress, note blockers, plan next week</span>
@@ -617,7 +617,7 @@ body::before {
     <!-- Daily -->
     <div class="note-block">
       <div class="note-day-header"><span class="note-day-dot daily"></span>Daily</div>
-      <div class="note-content" contenteditable="true" data-note-id="daily">
+      <div class="note-content" contenteditable="true" data-note-id="daily" data-version="1">
         <div class="task">
           <span class="task-time">06:30</span>
           <span class="task-desc">Check analytics — newsletter open rate, site traffic, social engagement</span>
@@ -636,7 +636,7 @@ body::before {
     <!-- Monthly -->
     <div class="note-block">
       <div class="note-day-header"><span class="note-day-dot mon"></span>Monthly</div>
-      <div class="note-content" contenteditable="true" data-note-id="monday">
+      <div class="note-content" contenteditable="true" data-note-id="monthly" data-version="1">
         <div class="task">
           <span class="task-time">1st - 13th</span>
           <span class="task-desc">Drop design — outline the monthly drop, check price points, design and prepare drop</span>
@@ -658,7 +658,7 @@ body::before {
     <div class="note-block">
       <div class="note-day-header"><span class="note-day-dot"></span>General notes</div>
       <!--email_off-->
-      <div class="note-content" contenteditable="true" style="min-height:120px;" data-note-id="general">
+      <div class="note-content" contenteditable="true" style="min-height:120px;" data-note-id="general" data-version="2">
         <div class="task">
           <span class="task-time">&mdash;</span>
           <span class="task-desc">Chimera Report scheduled to: <span class="highlight">10/06/2026</span></span>
@@ -689,16 +689,27 @@ document.getElementById('dayDisplay').textContent = days[d.getDay()] + ' ' + d.g
 // localStorage persistence for notes
 var STORAGE_KEY = 'cc-schedule-notes';
 var ADDED_KEY = 'cc-schedule-added';
+var VERSION_KEY = 'cc-schedule-versions';
 
 // Load saved notes on page load
 function loadNotes() {
   try {
     var saved = localStorage.getItem(STORAGE_KEY);
+    var versions = {};
+    try { versions = JSON.parse(localStorage.getItem(VERSION_KEY)) || {}; } catch(e) {}
+
     if (saved) {
       var data = JSON.parse(saved);
       document.querySelectorAll('[data-note-id]').forEach(function(el) {
-        if (data[el.dataset.noteId]) {
-          el.innerHTML = data[el.dataset.noteId];
+        var id = el.dataset.noteId;
+        var htmlVersion = el.dataset.version || '0';
+        // If the HTML version is newer than what was saved, keep the HTML
+        // (so edits to the file take effect and aren't overwritten by old localStorage).
+        if (versions[id] && versions[id] !== htmlVersion) {
+          return;
+        }
+        if (data[id] !== undefined) {
+          el.innerHTML = data[id];
         }
       });
     }
@@ -724,10 +735,15 @@ function loadNotes() {
 function saveNotes() {
   try {
     var data = {};
+    var versions = {};
     document.querySelectorAll('[data-note-id]').forEach(function(el) {
       data[el.dataset.noteId] = el.innerHTML;
+      if (el.dataset.version) {
+        versions[el.dataset.noteId] = el.dataset.version;
+      }
     });
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(VERSION_KEY, JSON.stringify(versions));
     // Save added blocks metadata
     var addedBlocks = [];
     document.querySelectorAll('[data-note-id^="added-"]').forEach(function(el) {
@@ -782,6 +798,7 @@ function resetNotes() {
   if (confirm('Reset all notes to defaults? This cannot be undone.')) {
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(ADDED_KEY);
+    localStorage.removeItem(VERSION_KEY);
     location.reload();
   }
 }
@@ -794,3 +811,5 @@ document.querySelectorAll('[data-note-id]').forEach(function(el) {
 // Load saved data
 loadNotes();
 </script>
+</body>
+</html>
